@@ -1,14 +1,26 @@
 {
   "name": "@marcelogames0/lang-module",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Lang package for my projects",
   "main": "src/index.js",
-  "repository": "git@github.com:AmPessoalProjects/LangModule.git",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/AmPessoalProjects/LangModule.git"
+  },
   "author": "MarceloGames000 <gamesmarcelo274@gmail.com>",
   "license": "MIT",
   "private": false,
   "dependencies": {
     "fs": "^0.0.1-security",
     "path": "^0.12.7"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/AmPessoalProjects/LangModule/issues"
+  },
+  "homepage": "https://github.com/AmPessoalProjects/LangModule#readme",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": []
 }
