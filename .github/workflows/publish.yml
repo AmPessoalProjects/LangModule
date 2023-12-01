@@ -17,7 +17,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '14'  # Use a versão do Node.js adequada ao seu projeto
+          node-version: '18'  # Use a versão do Node.js adequada ao seu projeto
           registry-url: 'https://npm.pkg.github.com'
           scope: '@MarceloGames000'
 
@@ -26,6 +26,9 @@ jobs:
 
       - name: Publish to GitHub Packages
         run: npm publish --access public
+
+      - name: Remove existing .npmrc
+        run: rm -f ~/.npmrc
 
       - name: Publish to NPM
         run: |
