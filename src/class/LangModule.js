@@ -19,79 +19,68 @@ module.exports = class LangModule {
     }
 
     init() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                await fs.access(this.path);
-                if (this.debug) console.log("[!] The directory '" + this.path + "' found!");
+        return this.createDirectory(this.path)
+            .then(() => Promise.all(this.langs.map(lang => this.initLang(lang))))
+            .then(() => console.log('[!] Lang initialization completed!'))
+            .catch((error) => console.error('[X] Lang initialization failed:', error.message));
+    }
 
-                for (const lang of this.langs) {
-                    const langPath = path.resolve(this.path, lang);
-                    try {
-                        await fs.access(langPath);
-                        if (this.debug) console.log("[!] The lang directory '" + langPath + "' found!");
+    async createDirectory(directoryPath, main = true) {
+        try {
+            await fs.access(directoryPath);
+            if (this.debug) console.log("[!] The " + (main ? "main lang" : "lang") + " directory '" + directoryPath + "' found!");
+        } catch (error) {
+            if (error.code === 'ENOENT') {
+                if (this.debug) console.log("[X] The " + (main ? "main lang" : "lang") + " directory '" + directoryPath + "' not found!");
 
-                        this.data[lang] = {};
-                        for (const ns of this.namespaces) {
-                            const nsPath = path.resolve(langPath, ns + '.json');
-                            try {
-                                await fs.access(nsPath);
-                                if (this.debug) console.log("[!] The lang namespace file '" + nsPath + "' found!");
-
-                                const nsFile = require(nsPath);
-                                this.data[lang][ns] = nsFile;
-                            } catch (error) {
-                                if (this.debug) console.log(error);
-                                if (error.code === 'ENOENT') {
-                                    if (this.debug) console.log("[X] The lang namespace file '" + nsPath + "' does not exist!");
-
-                                    try {
-                                        if (this.debug) console.log("[!] Trying to create the lang namespace file '" + nsPath + "'");
-                                        await fs.writeFile(nsPath, JSON.stringify({}));
-                                        if (this.debug) console.log("[!] Successfully created the lang namespace file '" + nsPath + "'");
-                                    } catch (e) {
-                                        if (this.debug) console.log("[X] Error on create lang namespace file!");
-                                        if (this.debug) console.log(e);
-                                    }
-                                }
-                            }
-                        }
-                    } catch (error) {
-                        if (this.debug) console.log(error);
-                        if (error.code === 'ENOENT') {
-                            if (this.debug) console.log("[X] The lang directory '" + langPath + "' does not exist!");
-
-                            try {
-                                if (this.debug) console.log("[!] Trying to create the lang directory '" + langPath + "'");
-                                await fs.mkdir(langPath, { recursive: true });
-                                if (this.debug) console.log("[!] Successfully created the lang directory '" + langPath + "'");
-                            } catch (e) {
-                                if (this.debug) console.log("[X] Error on create lang directory!");
-                                if (this.debug) console.log(e);
-                            }
-                        }
-                    }
+                try {
+                    if (this.debug) console.log("[!] Trying to create the " + (main ? "main lang" : "lang") + " directory '" + directoryPath + "'...");
+                    await fs.mkdir(directoryPath, { recursive: true });
+                    if (this.debug) console.log("[!] Successfully created the " + (main ? "main lang" : "lang") + " directory '" + directoryPath + "'!");
+                } catch (e) {
+                    if (this.debug) console.log("[X] Error on create the " + (main ? "main lang" : "lang") + " directory:", e.message);
+                    throw e.message;
                 }
-                resolve();
-            } catch (error) {
-                if (this.debug) console.log(error);
-                if (error.code === 'ENOENT') {
-                    if (this.debug) console.log("[X] The directory '" + this.path + "' does not exist!");
-
-                    try {
-                        if (this.debug) console.log("[!] Trying to create the directory '" + this.path + "'");
-                        await fs.mkdir(this.path, { recursive: true });
-                        if (this.debug) console.log("[!] Successfully created the directory '" + this.path + "'");
-                        resolve();
-                    } catch (e) {
-                        if (this.debug) console.log("[X] Error on create directory!");
-                        if (this.debug) console.log(e);
-                        reject(e);
-                    }
-                } else {
-                    reject(error);
-                }
+            } else {
+                throw error.message;
             }
-        });
+        }
+    }
+
+    async initLang(lang) {
+        const langPath = path.resolve(this.path, lang);
+        await this.createDirectory(langPath, false);
+
+        this.data[lang] = {};
+
+        await Promise.all(this.namespaces.map(ns => this.initNamespace(lang, ns)));
+    }
+
+    async initNamespace(lang, ns) {
+        const nsPath = path.resolve(this.path, lang, ns + '.json');
+
+        try {
+            await fs.access(nsPath);
+            if (this.debug) console.log("[!] The lang namespace file '" + nsPath + "' found!");
+
+            const nsFile = require(nsPath);
+            this.data[lang][ns] = nsFile;
+        } catch (error) {
+            if (error.code === 'ENOENT') {
+                if (this.debug) console.log("[X] The lang namespace file '" + nsPath + "' not found!");
+
+                try {
+                    if (this.debug) console.log("[!] Trying to create the lang namespace file '" + nsPath + "'...");
+                    await fs.writeFile(nsPath, JSON.stringify({}));
+                    if (this.debug) console.log("[!] Successfully created the lang namespace file '" + nsPath + "'!");
+                } catch (e) {
+                    if (this.debug) console.log("[X] Error on create lang namespace file:", e.message);
+                    throw e.message;
+                }
+            } else {
+                throw error.message;
+            }
+        }
     }
 
     /**
