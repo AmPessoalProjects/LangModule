@@ -1,6 +1,6 @@
 {
   "name": "@marcelogames0/lang-module",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Lang package for my projects",
   "main": "src/index.js",
   "repository": {
@@ -21,6 +21,9 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "publishConfig": {
+    "@MarceloGames000:registry": "https://npm.pkg.github.com"
   },
   "keywords": []
 }
