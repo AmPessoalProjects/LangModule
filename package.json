@@ -1,6 +1,6 @@
 {
   "name": "@marcelogames0/lang-module",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Lang package for my projects",
   "main": "src/index.js",
   "repository": {

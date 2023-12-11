@@ -18,11 +18,11 @@ module.exports = class LangModule {
         this.data = {};
     }
 
-    init() {
+    init(reload = false) {
         return this.createDirectory(this.path)
-            .then(() => Promise.all(this.langs.map(lang => this.initLang(lang))))
-            .then(() => console.log('[!] Lang initialization completed!'))
-            .catch((error) => console.error('[X] Lang initialization failed:', error.message));
+            .then(() => Promise.all(this.langs.map(lang => this.initLang(lang, reload))))
+            .then(() => console.log(`[!] Lang ${reload ? 're' : ''}initialization completed!`))
+            .catch((error) => console.error(`[X] Lang ${reload ? 're' : ''}initialization failed:`, error.message));
     }
 
     async createDirectory(directoryPath, main = true) {
@@ -47,21 +47,22 @@ module.exports = class LangModule {
         }
     }
 
-    async initLang(lang) {
+    async initLang(lang, reload) {
         const langPath = path.resolve(this.path, lang);
         await this.createDirectory(langPath, false);
 
         this.data[lang] = {};
 
-        await Promise.all(this.namespaces.map(ns => this.initNamespace(lang, ns)));
+        await Promise.all(this.namespaces.map(ns => this.initNamespace(lang, ns, reload)));
     }
 
-    async initNamespace(lang, ns) {
+    async initNamespace(lang, ns, reload = false) {
         const nsPath = path.resolve(this.path, lang, ns + '.json');
 
         try {
             await fs.access(nsPath);
             if (this.debug) console.log("[!] The lang namespace file '" + nsPath + "' found!");
+            if (reload) delete require.cache[nsPath];
 
             const nsFile = require(nsPath);
             this.data[lang][ns] = nsFile;
@@ -115,5 +116,10 @@ module.exports = class LangModule {
         } catch (e) {
             return undefined;
         }
+    }
+
+    async reload() {
+        this.data = {};
+        await this.init(true);
     }
 }
