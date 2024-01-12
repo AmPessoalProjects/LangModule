@@ -18,7 +18,10 @@ module.exports = class LangModule {
         this.data = {};
     }
 
-    init(reload = false) {
+    init() {
+        return this._preInit(false);
+    }
+    async _preInit(reload = false) {
         return this.createDirectory(this.path)
             .then(() => Promise.all(this.langs.map(lang => this.initLang(lang, reload))))
             .then(() => console.log(`[!] Lang ${reload ? 're' : ''}initialization completed!`))
@@ -120,6 +123,6 @@ module.exports = class LangModule {
 
     async reload() {
         this.data = {};
-        await this.init(true);
+        await this._preInit(true);
     }
 }
